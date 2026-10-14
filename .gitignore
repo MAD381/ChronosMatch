@@ -1,0 +1,7 @@
+__pycache__\
+*.py[cod]
+.venv\
+venv\
+.env
+chronosmatch__buffer.dat
+.vscode\
