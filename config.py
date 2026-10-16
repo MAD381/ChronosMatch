@@ -1,6 +1,6 @@
 # ChronosMatch - Week 1 Configuration
 
-BUFFER_CAPACITY = 464
+BUFFER_CAPACITY = 1024
 
 # Number of orders to generate in a test run.
 TOTAL_ORDERS = 500_000
