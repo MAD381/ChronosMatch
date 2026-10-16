@@ -1,5 +1,5 @@
+
 import mmap
-import os
 import struct
 
 from config import (
@@ -12,17 +12,15 @@ from config import (
 
 
 class RingBuffer:
-    """
-    Memory-mapped ring buffer for ChronosMatch.
-
-    Stores orders in binary form using mmap and struct.
-    The producer and consumer share the same mapped file.
-    """
+    """Memory-mapped ring buffer for storing trading orders."""
 
     WRITE_POSITION_OFFSET = 0
     READ_POSITION_OFFSET = 8
 
     def __init__(self, filename="chronosmatch_buffer.dat"):
+        if BUFFER_CAPACITY <= 0:
+            raise ValueError("BUFFER_CAPACITY must be positive")
+
         self.filename = filename
         self.capacity = BUFFER_CAPACITY
         self.order_size = ORDER_SIZE
@@ -40,21 +38,11 @@ class RingBuffer:
         self.read_position = 0
         self.count = 0
 
-        # Header:
-        # First 8 bytes  = write position
-        # Next 8 bytes   = read position
         struct.pack_into(
-            "<Q",
-            self.memory,
-            self.WRITE_POSITION_OFFSET,
-            0,
+            "<Q", self.memory, self.WRITE_POSITION_OFFSET, 0
         )
-
         struct.pack_into(
-            "<Q",
-            self.memory,
-            self.READ_POSITION_OFFSET,
-            0,
+            "<Q", self.memory, self.READ_POSITION_OFFSET, 0
         )
 
     def is_empty(self):
@@ -64,18 +52,24 @@ class RingBuffer:
         return self.count >= self.capacity
 
     def write_order(self, order_id, price_paise, quantity):
-        """
-        Write an order to the ring buffer.
+        """Write an order. Return False if the buffer is full."""
 
-        Returns True if the order was written.
-        Returns False if the buffer is full.
-        """
+        if (
+            not isinstance(order_id, int)
+            or not isinstance(price_paise, int)
+            or not isinstance(quantity, int)
+            or order_id <= 0
+            or price_paise <= 0
+            or quantity <= 0
+        ):
+            raise ValueError(
+                "Order ID, price, and quantity must be positive integers"
+            )
 
         if self.is_full():
             return False
 
         index = self.write_position % self.capacity
-
         offset = HEADER_SIZE + index * self.order_size
 
         struct.pack_into(
@@ -100,17 +94,12 @@ class RingBuffer:
         return True
 
     def read_order(self):
-        """
-        Read the next order from the ring buffer.
-
-        Returns a dictionary or None if the buffer is empty.
-        """
+        """Read the next order. Return None if the buffer is empty."""
 
         if self.is_empty():
             return None
 
         index = self.read_position % self.capacity
-
         offset = HEADER_SIZE + index * self.order_size
 
         order_id, price_paise, quantity = struct.unpack_from(
@@ -136,7 +125,10 @@ class RingBuffer:
         }
 
     def close(self):
-        """Close the memory map and its backing file."""
+        """Close the memory map and backing file."""
 
-        self.memory.close()
-        self.file.close()
+        if not self.memory.closed:
+            self.memory.close()
+
+        if not self.file.closed:
+            self.file.close()
