@@ -25,6 +25,7 @@ class RingBuffer:
         self.capacity = BUFFER_CAPACITY
         self.order_size = ORDER_SIZE
 
+        # Create the backing file and allocate memory.
         self.file = open(filename, "w+b")
         self.file.truncate(BUFFER_SIZE)
 
@@ -34,6 +35,7 @@ class RingBuffer:
             access=mmap.ACCESS_WRITE,
         )
 
+        # Initialize read and write positions.
         self.write_position = 0
         self.read_position = 0
         self.count = 0
@@ -46,18 +48,24 @@ class RingBuffer:
         )
 
     def is_empty(self):
+        """Return True if the buffer is empty."""
         return self.count == 0
 
     def is_full(self):
+        """Return True if the buffer is full."""
         return self.count >= self.capacity
 
     def write_order(self, order_id, price_paise, quantity):
         """Write an order. Return False if the buffer is full."""
 
+        # Validate input values.
         if (
             not isinstance(order_id, int)
+            or isinstance(order_id, bool)
             or not isinstance(price_paise, int)
+            or isinstance(price_paise, bool)
             or not isinstance(quantity, int)
+            or isinstance(quantity, bool)
             or order_id <= 0
             or price_paise <= 0
             or quantity <= 0
@@ -66,12 +74,15 @@ class RingBuffer:
                 "Order ID, price, and quantity must be positive integers"
             )
 
+        # Do not write if the buffer is full.
         if self.is_full():
             return False
 
+        # Calculate the memory location for this order.
         index = self.write_position % self.capacity
         offset = HEADER_SIZE + index * self.order_size
 
+        # Store order ID, price, and quantity in memory.
         struct.pack_into(
             ORDER_FORMAT,
             self.memory,
@@ -84,6 +95,7 @@ class RingBuffer:
         self.write_position += 1
         self.count += 1
 
+        # Update the write position in the header.
         struct.pack_into(
             "<Q",
             self.memory,
@@ -99,9 +111,11 @@ class RingBuffer:
         if self.is_empty():
             return None
 
+        # Calculate the memory location of the next order.
         index = self.read_position % self.capacity
         offset = HEADER_SIZE + index * self.order_size
 
+        # Read the order from memory.
         order_id, price_paise, quantity = struct.unpack_from(
             ORDER_FORMAT,
             self.memory,
@@ -111,6 +125,7 @@ class RingBuffer:
         self.read_position += 1
         self.count -= 1
 
+        # Update the read position in the header.
         struct.pack_into(
             "<Q",
             self.memory,
