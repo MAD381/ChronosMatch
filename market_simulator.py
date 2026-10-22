@@ -1,4 +1,3 @@
-
 import asyncio
 import random
 import struct 
@@ -28,6 +27,7 @@ class MarketSimulator:
             written = False
             rejected = False
 
+            # Retry loop for buffer congestion handling (Week 2 IPC Error Handling)
             for _ in range(100):
                 try:
                     written = self.ring_buffer.write_order(
