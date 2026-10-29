@@ -1,169 +1,117 @@
 
 import asyncio
-import time
 
 from config import TOTAL_ORDERS
-from market_simulator import MarketSimulator
+from performance_test import run_transfer_test
+from stress_test import run_stress_tests
 from ring_buffer import RingBuffer
 
 
-def run_ipc_checks(ring_buffer):
-    """Week 2: Check empty buffer, invalid orders, and full buffer."""
+def run_week2_checks():
+    """Run the Week 2 input-validation and buffer checks."""
 
-    print("\nWEEK 2 IPC CHECKS")
-    print("-" * 55)
+    buffer = RingBuffer()
+    passed = True
 
-    # Test 1: Empty buffer
-    if ring_buffer.read_order() is None:
-        print("PASS: Empty buffer handled correctly.")
-    else:
-        raise RuntimeError("Empty-buffer check failed.")
-
-    # Test 2: Invalid order
     try:
-        ring_buffer.write_order(0, 100_000, 1)
-    except ValueError:
-        print("PASS: Invalid order rejected correctly.")
-    else:
-        raise RuntimeError(
-            "Invalid-order check failed. Check ring_buffer.py validation."
-        )
+        print("\nWEEK 2: IPC AND ERROR-HANDLING CHECKS")
+        print("-" * 55)
 
-    # Test 3: Fill buffer to capacity
-    for order_id in range(1, ring_buffer.capacity + 1):
-        if not ring_buffer.write_order(order_id, 100_000, 1):
-            raise RuntimeError("Buffer filled earlier than expected.")
+        if buffer.read_order() is None:
+            print("PASS: Empty buffer handled correctly.")
+        else:
+            print("FAIL: Empty-buffer check.")
+            passed = False
 
-    # One extra order must not be accepted
-    if ring_buffer.write_order(
-        ring_buffer.capacity + 1, 100_000, 1
-    ):
-        raise RuntimeError("Full-buffer check failed.")
+        try:
+            buffer.write_order(0, 100000, 1)
+        except ValueError:
+            print("PASS: Invalid order rejected correctly.")
+        else:
+            print("FAIL: Invalid order was accepted.")
+            passed = False
 
-    print("PASS: Full buffer safely refused an extra order.")
+        for order_id in range(1, buffer.capacity + 1):
+            if not buffer.write_order(order_id, 100000, 1):
+                print("FAIL: Buffer filled earlier than expected.")
+                passed = False
+                break
 
-    # Empty the buffer before the main simulation
-    for _ in range(ring_buffer.capacity):
-        if ring_buffer.read_order() is None:
-            raise RuntimeError("Buffer recovery check failed.")
+        if buffer.is_full():
+            print("PASS: Buffer reached its capacity.")
+        else:
+            print("FAIL: Buffer did not reach capacity.")
+            passed = False
 
-    if not ring_buffer.is_empty():
-        raise RuntimeError("Buffer was not empty after recovery.")
+        if buffer.write_order(buffer.capacity + 1, 100000, 1) is False:
+            print("PASS: Full buffer refused an extra order.")
+        else:
+            print("FAIL: Full buffer accepted an extra order.")
+            passed = False
 
-    print("PASS: Buffer recovered successfully.")
+        for _ in range(buffer.capacity):
+            if buffer.read_order() is None:
+                print("FAIL: Buffer recovery failed.")
+                passed = False
+                break
 
+        if buffer.is_empty():
+            print("PASS: Buffer recovered successfully.")
+        else:
+            print("FAIL: Buffer was not empty after recovery.")
+            passed = False
 
-async def consume_orders(ring_buffer, producer_task, state):
-    """Week 1: Consume and verify generated orders."""
+    finally:
+        buffer.close()
 
-    consumed = 0
-    checksum = 0
-
-    while not producer_task.done() or not ring_buffer.is_empty():
-        order = ring_buffer.read_order()
-
-        if order is None:
-            await asyncio.sleep(0)
-            continue
-
-        consumed += 1
-        checksum += order["order_id"]
-
-    state["consumed"] = consumed
-    state["checksum"] = checksum
+    return passed
 
 
 async def main():
-    print("=" * 55)
-    print("       CHRONOSMATCH - WEEK 1 + WEEK 2")
-    print("=" * 55)
+    print("=" * 60)
+    print("CHRONOSMATCH - COMPLETE WEEK 1 TO WEEK 4")
+    print("=" * 60)
 
-    ring_buffer = RingBuffer()
+    # WEEK 1: Main order-transfer test
+    week1_result = await run_transfer_test(
+        TOTAL_ORDERS,
+        "WEEK 1: ORDER TRANSFER",
+    )
+    week1_passed = week1_result["passed"]
 
-    try:
-        # Run Week 2 error-handling checks first
-        run_ipc_checks(ring_buffer)
+    # WEEK 2: Buffer and input validation
+    week2_passed = run_week2_checks()
 
-        # Week 1 producer-consumer simulation
-        simulator = MarketSimulator(
-            ring_buffer=ring_buffer,
-            total_orders=TOTAL_ORDERS,
-        )
+    # WEEK 3: Performance test with a high order volume
+    week3_result = await run_transfer_test(
+        TOTAL_ORDERS,
+        "WEEK 3: PERFORMANCE TEST",
+    )
+    week3_passed = week3_result["passed"]
 
-        consumer_state = {}
-        start_time = time.perf_counter()
+    # WEEK 4: Repeated stability and stress tests
+    week4_passed = await run_stress_tests()
 
-        producer_task = asyncio.create_task(
-            simulator.generate_orders()
-        )
+    # FINAL SUMMARY
+    print("\n" + "=" * 60)
+    print("FINAL SUMMARY - ALL FOUR WEEKS")
+    print("=" * 60)
+    print(f"Week 1 - Order transfer: {'PASS' if week1_passed else 'FAIL'}")
+    print(f"Week 2 - Validation: {'PASS' if week2_passed else 'FAIL'}")
+    print(f"Week 3 - Performance: {'PASS' if week3_passed else 'FAIL'}")
+    print(f"Week 4 - Stress testing: {'PASS' if week4_passed else 'FAIL'}")
 
-        consumer_task = asyncio.create_task(
-            consume_orders(
-                ring_buffer,
-                producer_task,
-                consumer_state,
-            )
-        )
+    overall_passed = (
+        week1_passed
+        and week2_passed
+        and week3_passed
+        and week4_passed
+    )
 
-        producer_result, _ = await asyncio.gather(
-            producer_task,
-            consumer_task,
-        )
-
-        total_elapsed = time.perf_counter() - start_time
-
-        consumed = consumer_state["consumed"]
-        checksum = consumer_state["checksum"]
-        expected_checksum = TOTAL_ORDERS * (TOTAL_ORDERS + 1) // 2
-
-        print("\nWEEK 1 + WEEK 2 RESULTS")
-        print("-" * 55)
-        print(f"Orders requested: {TOTAL_ORDERS}")
-        print(f"Orders successfully generated: {producer_result['generated']}")
-        print(f"Orders failed: {producer_result['failed']}")
-        print(f"Orders rejected: {producer_result.get('rejected', 0)}")
-        print(f"Orders consumed: {consumed}")
-        print(f"Order ID checksum: {checksum}")
-
-        print(
-            f"Producer elapsed time: "
-            f"{producer_result['elapsed_seconds']:.4f} seconds"
-        )
-        print(f"Total elapsed time: {total_elapsed:.4f} seconds")
-
-        if total_elapsed > 0:
-            print(
-                f"End-to-end throughput: "
-                f"{consumed / total_elapsed:.2f} orders/second"
-            )
-
-        print("\nFINAL VALIDATION")
-        print("-" * 55)
-
-        passed = (
-            producer_result["generated"] == TOTAL_ORDERS
-            and producer_result["failed"] == 0
-            and producer_result.get("rejected", 0) == 0
-            and consumed == TOTAL_ORDERS
-            and checksum == expected_checksum
-            and ring_buffer.is_empty()
-        )
-
-        if passed:
-            print("PASS: All orders were transferred and verified.")
-            print("PASS: Week 2 IPC checks passed.")
-        else:
-            print("FAIL: One or more checks failed.")
-
-    finally:
-        ring_buffer.close()
-
-    print("\nChronosMatch prototype finished.")
+    print("-" * 60)
+    print(f"OVERALL RESULT: {'PASS' if overall_passed else 'FAIL'}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-
