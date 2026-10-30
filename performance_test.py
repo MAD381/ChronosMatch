@@ -52,9 +52,7 @@ async def run_transfer_test(total_orders, label):
         start_time = time.perf_counter()
 
         # Concurrently run the order producer and consumer tasks
-        producer_task = asyncio.create_task(
-            simulator.generate_orders()
-        )
+        producer_task = asyncio.create_task(simulator.generate_orders())
 
         consumer_task = asyncio.create_task(
             consume_orders(
@@ -110,12 +108,8 @@ async def run_transfer_test(total_orders, label):
         print(f"Orders consumed: {result['consumed']}")
         print(f"Order ID checksum: {result['checksum']}")
         print(f"Elapsed time: {result['elapsed']:.4f} seconds")
-        print(
-            f"Throughput: {result['throughput']:.2f} orders/second"
-        )
-        print(
-            f"Validation: {'PASS' if result['passed'] else 'FAIL'}"
-        )
+        print(f"Throughput: {result['throughput']:.2f} orders/second")
+        print(f"Validation: {'PASS' if result['passed'] else 'FAIL'}")
 
         return result
 

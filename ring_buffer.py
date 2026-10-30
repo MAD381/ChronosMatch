@@ -1,4 +1,3 @@
-
 import mmap
 import struct
 
@@ -40,12 +39,8 @@ class RingBuffer:
         self.read_position = 0
         self.count = 0
 
-        struct.pack_into(
-            "<Q", self.memory, self.WRITE_POSITION_OFFSET, 0
-        )
-        struct.pack_into(
-            "<Q", self.memory, self.READ_POSITION_OFFSET, 0
-        )
+        struct.pack_into("<Q", self.memory, self.WRITE_POSITION_OFFSET, 0)
+        struct.pack_into("<Q", self.memory, self.READ_POSITION_OFFSET, 0)
 
     def is_empty(self):
         """Return True if the buffer is empty."""
@@ -70,9 +65,7 @@ class RingBuffer:
             or price_paise <= 0
             or quantity <= 0
         ):
-            raise ValueError(
-                "Order ID, price, and quantity must be positive integers"
-            )
+            raise ValueError("Order ID, price, and quantity must be positive integers")
 
         # Do not write if the buffer is full.
         if self.is_full():

@@ -1,4 +1,3 @@
-
 from performance_test import run_transfer_test
 
 
@@ -26,10 +25,7 @@ async def run_stress_tests():
                 if result["passed"]:
                     passed_tests += 1
 
-                print(
-                    f"Run {attempt}: "
-                    f"{'PASS' if result['passed'] else 'FAIL'}"
-                )
+                print(f"Run {attempt}: " f"{'PASS' if result['passed'] else 'FAIL'}")
 
             except Exception as error:
                 print(f"Run {attempt}: ERROR - {error}")

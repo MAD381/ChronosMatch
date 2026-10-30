@@ -1,6 +1,6 @@
 import asyncio
 import random
-import struct 
+import struct
 import time
 
 

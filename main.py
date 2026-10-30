@@ -1,4 +1,3 @@
-
 import asyncio
 
 from config import TOTAL_ORDERS
@@ -101,12 +100,7 @@ async def main():
     print(f"Week 3 - Performance: {'PASS' if week3_passed else 'FAIL'}")
     print(f"Week 4 - Stress testing: {'PASS' if week4_passed else 'FAIL'}")
 
-    overall_passed = (
-        week1_passed
-        and week2_passed
-        and week3_passed
-        and week4_passed
-    )
+    overall_passed = week1_passed and week2_passed and week3_passed and week4_passed
 
     print("-" * 60)
     print(f"OVERALL RESULT: {'PASS' if overall_passed else 'FAIL'}")
