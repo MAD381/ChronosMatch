@@ -1,7 +1,13 @@
-__pycache__\
+# Python cache files
+__pycache__/
 *.py[cod]
-.venv\
-venv\
-.env
-chronosmatch__buffer.dat
-.vscode\
+
+# Virtual environment
+venv/
+.venv/
+
+# Generated runtime buffer
+chronosmatch_buffer.dat
+
+# VS Code
+.vscode/
