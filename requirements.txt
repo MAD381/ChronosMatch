@@ -1,3 +1,0 @@
-week 1 uses only the python standard library
-
-
