@@ -1,4 +1,6 @@
 import asyncio
+import subprocess
+import sys
 
 from config import TOTAL_ORDERS
 from performance_test import run_transfer_test
@@ -7,7 +9,7 @@ from ring_buffer import RingBuffer
 
 
 def run_week2_checks():
-    """Run the Week 2 input-validation and buffer checks."""
+    """Run Week 2 input-validation and buffer checks."""
 
     buffer = RingBuffer()
     passed = True
@@ -66,9 +68,68 @@ def run_week2_checks():
     return passed
 
 
+def run_ai_stock_intelligence():
+    """Run all seven AI Stock Intelligence modules."""
+
+    modules = [
+        ("Module 1: Stock Data Collection", "ai_stock_intelligence.data_collector"),
+        ("Module 2: Technical Analysis", "ai_stock_intelligence.technical_analysis"),
+        ("Module 3: AI Stock Prediction", "ai_stock_intelligence.stock_predictor"),
+        ("Module 4: Risk Analysis", "ai_stock_intelligence.risk_analyzer"),
+        (
+            "Module 5: Fundamental Analysis",
+            "ai_stock_intelligence.fundamental_analyzer",
+        ),
+        ("Module 6: News Sentiment Analysis", "ai_stock_intelligence.news_sentiment"),
+        ("Module 7: Stock Comparison", "ai_stock_intelligence.stock_comparator"),
+    ]
+
+    results = []
+
+    print("\n" + "=" * 60)
+    print("CHRONOSMATCH - AI STOCK INTELLIGENCE")
+    print("=" * 60)
+
+    for module_name, module_path in modules:
+        print("\n" + "-" * 60)
+        print(module_name.upper())
+        print("-" * 60)
+
+        try:
+            result = subprocess.run([sys.executable, "-m", module_path], check=False)
+
+            passed = result.returncode == 0
+
+        except Exception as error:
+            print(f"ERROR: {error}")
+            passed = False
+
+        results.append((module_name, passed))
+
+        print(f"\n{module_name}: " f"{'COMPLETED' if passed else 'FAILED'}")
+
+    print("\n" + "=" * 60)
+    print("AI STOCK INTELLIGENCE SUMMARY")
+    print("=" * 60)
+
+    for module_name, passed in results:
+        status = "PASS" if passed else "FAIL"
+        print(f"{module_name}: {status}")
+
+    print("-" * 60)
+
+    all_passed = all(passed for _, passed in results)
+
+    print("AI MODULE RESULT: " f"{'PASS' if all_passed else 'SOME MODULES FAILED'}")
+    print("=" * 60)
+
+    return all_passed
+
+
 async def main():
     print("=" * 60)
     print("CHRONOSMATCH - COMPLETE WEEK 1 TO WEEK 4")
+    print("WITH AI STOCK INTELLIGENCE")
     print("=" * 60)
 
     # WEEK 1: Main order-transfer test
@@ -81,26 +142,33 @@ async def main():
     # WEEK 2: Buffer and input validation
     week2_passed = run_week2_checks()
 
-    # WEEK 3: Performance test with a high order volume
+    # WEEK 3: Performance test
     week3_result = await run_transfer_test(
         TOTAL_ORDERS,
         "WEEK 3: PERFORMANCE TEST",
     )
     week3_passed = week3_result["passed"]
 
-    # WEEK 4: Repeated stability and stress tests
+    # WEEK 4: Stability and stress tests
     week4_passed = await run_stress_tests()
+
+    # AI: Run all seven stock intelligence modules
+    ai_passed = run_ai_stock_intelligence()
 
     # FINAL SUMMARY
     print("\n" + "=" * 60)
-    print("FINAL SUMMARY - ALL FOUR WEEKS")
+    print("CHRONOSMATCH - COMPLETE PROJECT SUMMARY")
     print("=" * 60)
+
     print(f"Week 1 - Order transfer: {'PASS' if week1_passed else 'FAIL'}")
     print(f"Week 2 - Validation: {'PASS' if week2_passed else 'FAIL'}")
     print(f"Week 3 - Performance: {'PASS' if week3_passed else 'FAIL'}")
     print(f"Week 4 - Stress testing: {'PASS' if week4_passed else 'FAIL'}")
+    print(f"AI Stock Intelligence: {'PASS' if ai_passed else 'FAIL'}")
 
-    overall_passed = week1_passed and week2_passed and week3_passed and week4_passed
+    overall_passed = (
+        week1_passed and week2_passed and week3_passed and week4_passed and ai_passed
+    )
 
     print("-" * 60)
     print(f"OVERALL RESULT: {'PASS' if overall_passed else 'FAIL'}")
