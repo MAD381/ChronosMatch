@@ -69,34 +69,78 @@ def run_week2_checks():
 
 
 def run_ai_stock_intelligence():
-    """Run all seven AI Stock Intelligence modules."""
+    """Run all twelve AI Stock Intelligence modules."""
 
     modules = [
-        ("Module 1: Stock Data Collection", "ai_stock_intelligence.data_collector"),
-        ("Module 2: Technical Analysis", "ai_stock_intelligence.technical_analysis"),
-        ("Module 3: AI Stock Prediction", "ai_stock_intelligence.stock_predictor"),
-        ("Module 4: Risk Analysis", "ai_stock_intelligence.risk_analyzer"),
+        # Modules 1-7: Existing modules
+        (
+            "Module 1: Stock Data Collection",
+            "ai_stock_intelligence.data_collector",
+        ),
+        (
+            "Module 2: Technical Analysis",
+            "ai_stock_intelligence.technical_analysis",
+        ),
+        (
+            "Module 3: AI Stock Prediction",
+            "ai_stock_intelligence.stock_predictor",
+        ),
+        (
+            "Module 4: Risk Analysis",
+            "ai_stock_intelligence.risk_analyzer",
+        ),
         (
             "Module 5: Fundamental Analysis",
             "ai_stock_intelligence.fundamental_analyzer",
         ),
-        ("Module 6: News Sentiment Analysis", "ai_stock_intelligence.news_sentiment"),
-        ("Module 7: Stock Comparison", "ai_stock_intelligence.stock_comparator"),
+        (
+            "Module 6: News Sentiment Analysis",
+            "ai_stock_intelligence.news_sentiment",
+        ),
+        (
+            "Module 7: Stock Comparison",
+            "ai_stock_intelligence.stock_comparator",
+        ),
+        # Modules 8-12: Newly added modules
+        (
+            "Module 8: Portfolio Optimizer",
+            "ai_stock_intelligence.portfolio_optimizer",
+        ),
+        (
+            "Module 9: Trading Signal",
+            "ai_stock_intelligence.trading_signal",
+        ),
+        (
+            "Module 10: Backtesting Engine",
+            "ai_stock_intelligence.backtesting_engine",
+        ),
+        (
+            "Module 11: Portfolio Tracker",
+            "ai_stock_intelligence.portfolio_tracker",
+        ),
+        (
+            "Module 12: Interactive Stock Report",
+            "ai_stock_intelligence.portfolio_report",
+        ),
     ]
 
     results = []
 
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 65)
     print("CHRONOSMATCH - AI STOCK INTELLIGENCE")
-    print("=" * 60)
+    print("RUNNING ALL 12 MODULES")
+    print("=" * 65)
 
     for module_name, module_path in modules:
-        print("\n" + "-" * 60)
+        print("\n" + "-" * 65)
         print(module_name.upper())
-        print("-" * 60)
+        print("-" * 65)
 
         try:
-            result = subprocess.run([sys.executable, "-m", module_path], check=False)
+            result = subprocess.run(
+                [sys.executable, "-m", module_path],
+                check=False,
+            )
 
             passed = result.returncode == 0
 
@@ -106,31 +150,32 @@ def run_ai_stock_intelligence():
 
         results.append((module_name, passed))
 
-        print(f"\n{module_name}: " f"{'COMPLETED' if passed else 'FAILED'}")
+        status = "COMPLETED" if passed else "FAILED"
+        print(f"\n{module_name}: {status}")
 
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 65)
     print("AI STOCK INTELLIGENCE SUMMARY")
-    print("=" * 60)
+    print("=" * 65)
 
     for module_name, passed in results:
         status = "PASS" if passed else "FAIL"
         print(f"{module_name}: {status}")
 
-    print("-" * 60)
+    print("-" * 65)
 
     all_passed = all(passed for _, passed in results)
 
     print("AI MODULE RESULT: " f"{'PASS' if all_passed else 'SOME MODULES FAILED'}")
-    print("=" * 60)
+    print("=" * 65)
 
     return all_passed
 
 
 async def main():
-    print("=" * 60)
+    print("=" * 65)
     print("CHRONOSMATCH - COMPLETE WEEK 1 TO WEEK 4")
-    print("WITH AI STOCK INTELLIGENCE")
-    print("=" * 60)
+    print("WITH 12 AI STOCK INTELLIGENCE MODULES")
+    print("=" * 65)
 
     # WEEK 1: Main order-transfer test
     week1_result = await run_transfer_test(
@@ -152,27 +197,27 @@ async def main():
     # WEEK 4: Stability and stress tests
     week4_passed = await run_stress_tests()
 
-    # AI: Run all seven stock intelligence modules
+    # AI: Run all twelve stock intelligence modules
     ai_passed = run_ai_stock_intelligence()
 
     # FINAL SUMMARY
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 65)
     print("CHRONOSMATCH - COMPLETE PROJECT SUMMARY")
-    print("=" * 60)
+    print("=" * 65)
 
     print(f"Week 1 - Order transfer: {'PASS' if week1_passed else 'FAIL'}")
     print(f"Week 2 - Validation: {'PASS' if week2_passed else 'FAIL'}")
     print(f"Week 3 - Performance: {'PASS' if week3_passed else 'FAIL'}")
     print(f"Week 4 - Stress testing: {'PASS' if week4_passed else 'FAIL'}")
-    print(f"AI Stock Intelligence: {'PASS' if ai_passed else 'FAIL'}")
+    print(f"AI Stock Intelligence (12 Modules): " f"{'PASS' if ai_passed else 'FAIL'}")
 
     overall_passed = (
         week1_passed and week2_passed and week3_passed and week4_passed and ai_passed
     )
 
-    print("-" * 60)
+    print("-" * 65)
     print(f"OVERALL RESULT: {'PASS' if overall_passed else 'FAIL'}")
-    print("=" * 60)
+    print("=" * 65)
 
 
 if __name__ == "__main__":
